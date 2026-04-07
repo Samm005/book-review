@@ -24,7 +24,7 @@ export const createReview = async (req, res) => {
 // Get all reviews (for now, no filtering)
 export const getReviews = async (req, res) => {
   try {
-    const reviews = await Review.find();
+    const reviews = await Review.find({ status: "approved" });
 
     res.json(reviews);
   } catch (error) {
