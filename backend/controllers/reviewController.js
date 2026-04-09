@@ -3,10 +3,10 @@ import Review from "../models/Review.js";
 // Create a review
 export const createReview = async (req, res) => {
   try {
-    const { userId, bookTitle, review, rating } = req.body;
+    const { bookTitle, review, rating } = req.body;
 
     const newReview = new Review({
-      user: userId, // store ObjectId
+      user: req.user._id,
       bookTitle,
       review,
       rating,

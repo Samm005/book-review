@@ -5,15 +5,17 @@ import {
   approveReview,
 } from "../controllers/reviewController.js";
 
+import { protect, adminOnly } from "../middleware/authMiddleware.js";
+
 const router = express.Router();
 
-// Create review
-router.post("/", createReview);
-
-// Get all reviews
+// Public
 router.get("/", getReviews);
 
-// Approve review
-router.put("/:id", approveReview);
+// Logged-in users
+router.post("/", protect, createReview);
+
+// Admin only
+router.put("/:id", protect, adminOnly, approveReview);
 
 export default router;
