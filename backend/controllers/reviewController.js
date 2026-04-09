@@ -3,10 +3,10 @@ import Review from "../models/Review.js";
 // Create a review
 export const createReview = async (req, res) => {
   try {
-    const { user, bookTitle, review, rating } = req.body;
+    const { userId, bookTitle, review, rating } = req.body;
 
     const newReview = new Review({
-      user,
+      user: userId, // store ObjectId
       bookTitle,
       review,
       rating,
@@ -20,11 +20,13 @@ export const createReview = async (req, res) => {
   }
 };
 
-
-// Get all reviews (for now, no filtering)
+// Get only approved reviews + show user details
 export const getReviews = async (req, res) => {
   try {
-    const reviews = await Review.find({ status: "approved" });
+    const reviews = await Review.find({ status: "approved" }).populate(
+      "user",
+      "name email",
+    );
 
     res.json(reviews);
   } catch (error) {
@@ -32,8 +34,7 @@ export const getReviews = async (req, res) => {
   }
 };
 
-
-// Approve review - Admin only
+// Approve review - Admin only (for now manually)
 export const approveReview = async (req, res) => {
   try {
     const review = await Review.findById(req.params.id);

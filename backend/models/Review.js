@@ -3,7 +3,9 @@ import mongoose from "mongoose";
 const reviewSchema = new mongoose.Schema(
   {
     user: {
-      type: String,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
     },
     bookTitle: {
       type: String,

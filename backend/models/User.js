@@ -16,7 +16,7 @@ const userSchema = new mongoose.Schema(
       required: true,
     },
 
-    // 🔥 RBAC FIELD
+    // RBAC FIELD
     role: {
       type: String,
       enum: ["user", "admin"],
