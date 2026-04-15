@@ -70,9 +70,34 @@ export const getReviews = async (req, res) => {
   }
 };
 
+export const getReviewStats = async (req, res) => {
+  try {
+    const reviews = await Review.find({ status: "approved" });
+
+    const totalReviews = reviews.length;
+
+    if (totalReviews === 0) {
+      return res.json({
+        averageRating: 0,
+        totalReviews: 0,
+      });
+    }
+
+    const totalRating = reviews.reduce((sum, r) => sum + r.rating, 0);
+    const averageRating = (totalRating / totalReviews).toFixed(1);
+
+    res.json({
+      averageRating,
+      totalReviews,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 export const updateReview = async (req, res) => {
   try {
-    const { bookTitle, review, rating, author } = req.body;
+    const { review, rating } = req.body;
 
     const existing = await Review.findById(req.params.id);
 
@@ -95,10 +120,8 @@ export const updateReview = async (req, res) => {
       return res.status(400).json({ message: "Review too short" });
     }
 
-    existing.bookTitle = bookTitle || existing.bookTitle;
     existing.review = review || existing.review;
     existing.rating = rating || existing.rating;
-    existing.author = author || existing.author;
 
     await existing.save();
 

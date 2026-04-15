@@ -8,7 +8,8 @@ import {
   reportReview,
   getPendingReviews,
   getReportedReviews,
-  deleteReviewAdmin
+  deleteReviewAdmin,
+  getReviewStats
 } from "../controllers/reviewController.js";
 
 import { protect, adminOnly } from "../middleware/authMiddleware.js";
@@ -16,6 +17,7 @@ import { protect, adminOnly } from "../middleware/authMiddleware.js";
 const router = express.Router();
 
 router.get("/", getReviews);
+router.get("/stats", getReviewStats);
 
 router.post("/", protect, createReview);
 router.put("/:id", protect, updateReview);

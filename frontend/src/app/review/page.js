@@ -43,29 +43,48 @@ export default function ReviewPage() {
 
     const token = localStorage.getItem("token");
 
+    if (!token) {
+      alert("Login required");
+      router.push("/login");
+      return;
+    }
+
     setLoading(true);
 
-    await fetch("http://localhost:5000/api/reviews", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        bookTitle,
-        review: reviewText,
-        rating,
-        author,
-      }),
-    });
+    try {
+      const res = await fetch("http://localhost:5000/api/reviews", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          bookTitle,
+          review: reviewText,
+          rating,
+          author,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.message);
+        setLoading(false);
+        return;
+      }
+
+      fetchReviews();
+
+      setBookTitle("");
+      setAuthor("");
+      setReviewText("");
+      setRating(0);
+    } catch (err) {
+      alert("Server error");
+    }
 
     setLoading(false);
-
-    fetchReviews();
-    setBookTitle("");
-    setAuthor("");
-    setReviewText("");
-    setRating(0);
   };
 
   const handleDelete = async () => {
@@ -85,17 +104,34 @@ export default function ReviewPage() {
   const handleUpdate = async () => {
     const token = localStorage.getItem("token");
 
-    await fetch(`http://localhost:5000/api/reviews/${editingReview._id}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(editingReview),
-    });
+    try {
+      const res = await fetch(
+        `http://localhost:5000/api/reviews/${editingReview._id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            review: editingReview.review,
+            rating: editingReview.rating,
+          }),
+        },
+      );
 
-    setEditingReview(null);
-    fetchReviews();
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.message);
+        return;
+      }
+
+      setEditingReview(null);
+      fetchReviews();
+    } catch (err) {
+      alert("Update failed");
+    }
   };
 
   const handleLogout = () => {
