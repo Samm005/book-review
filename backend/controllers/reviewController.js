@@ -1,6 +1,5 @@
 import Review from "../models/Review.js";
 
-//   Expanded spam words list
 const bannedWords = [
   "spam",
   "scam",
@@ -18,12 +17,10 @@ const bannedWords = [
   "adult",
 ];
 
-//   CREATE REVIEW
 export const createReview = async (req, res) => {
   try {
     const { bookTitle, review, rating, author } = req.body;
 
-    // ✅ Validation
     if (!bookTitle || !review || !rating || !author) {
       return res.status(400).json({ message: "All fields required" });
     }
@@ -36,9 +33,10 @@ export const createReview = async (req, res) => {
       return res.status(400).json({ message: "Review too short" });
     }
 
-    //   Spam detection
     const lowerReview = review.toLowerCase();
-    const isSpam = bannedWords.some((word) => lowerReview.includes(word));
+    const isSpam = bannedWords.some((word) =>
+      lowerReview.includes(word)
+    );
 
     const status = isSpam ? "pending" : "approved";
 
@@ -59,12 +57,11 @@ export const createReview = async (req, res) => {
   }
 };
 
-//   GET APPROVED REVIEWS (PUBLIC)
 export const getReviews = async (req, res) => {
   try {
     const reviews = await Review.find({ status: "approved" }).populate(
       "user",
-      "name email",
+      "name email"
     );
 
     res.json(reviews);
@@ -73,7 +70,67 @@ export const getReviews = async (req, res) => {
   }
 };
 
-//   APPROVE REVIEW (ADMIN)
+export const updateReview = async (req, res) => {
+  try {
+    const { bookTitle, review, rating, author } = req.body;
+
+    const existing = await Review.findById(req.params.id);
+
+    if (!existing) {
+      return res.status(404).json({ message: "Review not found" });
+    }
+
+    if (
+      existing.user.toString() !== req.user._id.toString() &&
+      req.user.role !== "admin"
+    ) {
+      return res.status(403).json({ message: "Not allowed" });
+    }
+
+    if (rating && (rating < 1 || rating > 5)) {
+      return res.status(400).json({ message: "Rating must be 1-5" });
+    }
+
+    if (review && review.trim().length < 10) {
+      return res.status(400).json({ message: "Review too short" });
+    }
+
+    existing.bookTitle = bookTitle || existing.bookTitle;
+    existing.review = review || existing.review;
+    existing.rating = rating || existing.rating;
+    existing.author = author || existing.author;
+
+    await existing.save();
+
+    res.json(existing);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const deleteOwnReview = async (req, res) => {
+  try {
+    const review = await Review.findById(req.params.id);
+
+    if (!review) {
+      return res.status(404).json({ message: "Review not found" });
+    }
+
+    if (
+      review.user.toString() !== req.user._id.toString() &&
+      req.user.role !== "admin"
+    ) {
+      return res.status(403).json({ message: "Not allowed" });
+    }
+
+    await review.deleteOne();
+
+    res.json({ message: "Review deleted" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 export const approveReview = async (req, res) => {
   try {
     const review = await Review.findById(req.params.id);
@@ -91,7 +148,22 @@ export const approveReview = async (req, res) => {
   }
 };
 
-//   REPORT REVIEW (USER)
+export const deleteReviewAdmin = async (req, res) => {
+  try {
+    const review = await Review.findById(req.params.id);
+
+    if (!review) {
+      return res.status(404).json({ message: "Review not found" });
+    }
+
+    await review.deleteOne();
+
+    res.json({ message: "Admin deleted review" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 export const reportReview = async (req, res) => {
   try {
     const { reason } = req.body;
@@ -107,7 +179,6 @@ export const reportReview = async (req, res) => {
       reason: reason || "No reason provided",
     });
 
-    //   Auto-hide if too many reports
     if (review.reports.length >= 3) {
       review.status = "pending";
     }
@@ -120,12 +191,11 @@ export const reportReview = async (req, res) => {
   }
 };
 
-// 🟡 GET PENDING REVIEWS (ADMIN)
 export const getPendingReviews = async (req, res) => {
   try {
     const reviews = await Review.find({ status: "pending" }).populate(
       "user",
-      "name email",
+      "name email"
     );
 
     res.json(reviews);
@@ -134,7 +204,6 @@ export const getPendingReviews = async (req, res) => {
   }
 };
 
-// 🟡 GET REPORTED REVIEWS (ADMIN)
 export const getReportedReviews = async (req, res) => {
   try {
     const reviews = await Review.find({
@@ -142,23 +211,6 @@ export const getReportedReviews = async (req, res) => {
     }).populate("user", "name email");
 
     res.json(reviews);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-// 🔴 DELETE REVIEW (ADMIN)
-export const deleteReview = async (req, res) => {
-  try {
-    const review = await Review.findById(req.params.id);
-
-    if (!review) {
-      return res.status(404).json({ message: "Review not found" });
-    }
-
-    await review.deleteOne();
-
-    res.json({ message: "Review deleted" });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

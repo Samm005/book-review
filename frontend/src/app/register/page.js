@@ -20,34 +20,43 @@ export default function Register() {
   const validatePassword = (password) => {
     const regex =
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-
     return regex.test(password);
   };
 
   const handleChange = (e) => {
-  const updated = { ...form, [e.target.name]: e.target.value };
-  setForm(updated);
+    const updated = { ...form, [e.target.name]: e.target.value };
+    setForm(updated);
 
-  if (
-    updated.confirmPassword &&
-    updated.password !== updated.confirmPassword
-  ) {
-    setErrors({ confirmPassword: "Passwords do not match" });
-  } else if (
-    updated.password &&
-    !validatePassword(updated.password)
-  ) {
-    setErrors({
-      password:
-        "Password must be 8+ chars with uppercase, lowercase, number & special char",
-    });
-  } else {
-    setErrors({});
-  }
-};
+    let newErrors = { ...errors };
+
+    if (
+      updated.confirmPassword &&
+      updated.password !== updated.confirmPassword
+    ) {
+      newErrors.confirmPassword = "Passwords do not match";
+    } else {
+      delete newErrors.confirmPassword;
+    }
+
+    if (
+      updated.password &&
+      !validatePassword(updated.password)
+    ) {
+      newErrors.password =
+        "Password must be 8+ chars with uppercase, lowercase, number & special char";
+    } else {
+      delete newErrors.password;
+    }
+
+    delete newErrors.api;
+
+    setErrors(newErrors);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    setErrors({});
 
     if (!form.name || !form.email || !form.password) {
       setErrors({ api: "All fields are required" });
@@ -160,7 +169,9 @@ export default function Register() {
             </div>
 
             <p className="text-red-400 text-sm min-h-[20px]">
-              {errors.password || errors.confirmPassword || errors.api || ""}
+              {errors.api && errors.api}
+              {!errors.api && errors.confirmPassword && errors.confirmPassword}
+              {!errors.api && !errors.confirmPassword && errors.password && errors.password}
             </p>
 
             <button
