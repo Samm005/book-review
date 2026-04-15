@@ -19,9 +19,9 @@ const bannedWords = [
 
 export const createReview = async (req, res) => {
   try {
-    const { bookTitle, review, rating, author } = req.body;
+    const { bookId, review, rating } = req.body;
 
-    if (!bookTitle || !review || !rating || !author) {
+    if (!bookId || !review || !rating) {
       return res.status(400).json({ message: "All fields required" });
     }
 
@@ -42,10 +42,9 @@ export const createReview = async (req, res) => {
 
     const newReview = new Review({
       user: req.user._id,
-      bookTitle,
+      book: bookId,
       review,
       rating,
-      author,
       status,
     });
 
@@ -59,10 +58,16 @@ export const createReview = async (req, res) => {
 
 export const getReviews = async (req, res) => {
   try {
-    const reviews = await Review.find({ status: "approved" }).populate(
-      "user",
-      "name email"
-    );
+    const { bookId } = req.query;
+
+    let filter = { status: "approved" };
+    if (bookId) {
+      filter.book = bookId;
+    }
+
+    const reviews = await Review.find(filter)
+      .populate("user", "name email")
+      .populate("book");
 
     res.json(reviews);
   } catch (error) {
@@ -72,7 +77,14 @@ export const getReviews = async (req, res) => {
 
 export const getReviewStats = async (req, res) => {
   try {
-    const reviews = await Review.find({ status: "approved" });
+    const { bookId } = req.query;
+
+    let filter = { status: "approved" };
+    if (bookId) {
+      filter.book = bookId;
+    }
+
+    const reviews = await Review.find(filter);
 
     const totalReviews = reviews.length;
 
@@ -216,10 +228,9 @@ export const reportReview = async (req, res) => {
 
 export const getPendingReviews = async (req, res) => {
   try {
-    const reviews = await Review.find({ status: "pending" }).populate(
-      "user",
-      "name email"
-    );
+    const reviews = await Review.find({ status: "pending" })
+      .populate("user", "name email")
+      .populate("book");
 
     res.json(reviews);
   } catch (error) {
@@ -231,7 +242,9 @@ export const getReportedReviews = async (req, res) => {
   try {
     const reviews = await Review.find({
       "reports.0": { $exists: true },
-    }).populate("user", "name email");
+    })
+      .populate("user", "name email")
+      .populate("book");
 
     res.json(reviews);
   } catch (error) {

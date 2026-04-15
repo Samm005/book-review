@@ -7,15 +7,10 @@ const reviewSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
-    bookTitle: {
-      type: String,
+    book: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Book",
       required: true,
-      trim: true,
-    },
-    author: {
-      type: String,
-      required: true,
-      trim: true,
     },
     review: {
       type: String,
@@ -28,14 +23,11 @@ const reviewSchema = new mongoose.Schema(
       min: 1,
       max: 5,
     },
-
     status: {
       type: String,
       enum: ["pending", "approved"],
       default: "pending",
     },
-
-    // 🟢 Reporting system
     reports: [
       {
         user: {
@@ -46,7 +38,7 @@ const reviewSchema = new mongoose.Schema(
       },
     ],
   },
-  { timestamps: true },
+  { timestamps: true }
 );
 
 const Review = mongoose.model("Review", reviewSchema);

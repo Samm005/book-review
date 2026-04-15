@@ -2,12 +2,13 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
 import User from "./models/User.js";
+import connectDB from "./config/db.js";
 
 dotenv.config();
 
-const createAdmin = async () => {
+const seedAdmin = async () => {
   try {
-    await mongoose.connect(process.env.MONGO_URI);
+    await connectDB();
 
     const existingAdmin = await User.findOne({
       email: process.env.ADMIN_EMAIL,
@@ -23,12 +24,14 @@ const createAdmin = async () => {
       10
     );
 
-    await User.create({
+    const admin = new User({
       name: "Admin",
       email: process.env.ADMIN_EMAIL,
       password: hashedPassword,
       role: "admin",
     });
+
+    await admin.save();
 
     console.log("Admin created successfully");
     process.exit();
@@ -38,4 +41,4 @@ const createAdmin = async () => {
   }
 };
 
-createAdmin();
+seedAdmin();
