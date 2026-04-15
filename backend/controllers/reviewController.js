@@ -2,19 +2,29 @@ import Review from "../models/Review.js";
 
 //   Expanded spam words list
 const bannedWords = [
-  "spam", "scam", "fake", "fraud", "cheat",
-  "click here", "buy now", "free money",
-  "visit link", "subscribe now", "hack",
-  "illegal", "xxx", "adult"
+  "spam",
+  "scam",
+  "fake",
+  "fraud",
+  "cheat",
+  "click here",
+  "buy now",
+  "free money",
+  "visit link",
+  "subscribe now",
+  "hack",
+  "illegal",
+  "xxx",
+  "adult",
 ];
 
 //   CREATE REVIEW
 export const createReview = async (req, res) => {
   try {
-    const { bookTitle, review, rating } = req.body;
+    const { bookTitle, review, rating, author } = req.body;
 
     // ✅ Validation
-    if (!bookTitle || !review || !rating) {
+    if (!bookTitle || !review || !rating || !author) {
       return res.status(400).json({ message: "All fields required" });
     }
 
@@ -28,9 +38,7 @@ export const createReview = async (req, res) => {
 
     //   Spam detection
     const lowerReview = review.toLowerCase();
-    const isSpam = bannedWords.some(word =>
-      lowerReview.includes(word)
-    );
+    const isSpam = bannedWords.some((word) => lowerReview.includes(word));
 
     const status = isSpam ? "pending" : "approved";
 
@@ -39,33 +47,31 @@ export const createReview = async (req, res) => {
       bookTitle,
       review,
       rating,
+      author,
       status,
     });
 
     await newReview.save();
 
     res.status(201).json(newReview);
-
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-
-
 //   GET APPROVED REVIEWS (PUBLIC)
 export const getReviews = async (req, res) => {
   try {
-    const reviews = await Review.find({ status: "approved" })
-      .populate("user", "name email");
+    const reviews = await Review.find({ status: "approved" }).populate(
+      "user",
+      "name email",
+    );
 
     res.json(reviews);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
-
-
 
 //   APPROVE REVIEW (ADMIN)
 export const approveReview = async (req, res) => {
@@ -80,12 +86,10 @@ export const approveReview = async (req, res) => {
     await review.save();
 
     res.json({ message: "Review approved" });
-
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
-
 
 //   REPORT REVIEW (USER)
 export const reportReview = async (req, res) => {
@@ -111,41 +115,37 @@ export const reportReview = async (req, res) => {
     await review.save();
 
     res.json({ message: "Review reported" });
-
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
-
-
 
 // 🟡 GET PENDING REVIEWS (ADMIN)
 export const getPendingReviews = async (req, res) => {
   try {
-    const reviews = await Review.find({ status: "pending" })
-      .populate("user", "name email");
+    const reviews = await Review.find({ status: "pending" }).populate(
+      "user",
+      "name email",
+    );
 
     res.json(reviews);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
-
-
 
 // 🟡 GET REPORTED REVIEWS (ADMIN)
 export const getReportedReviews = async (req, res) => {
   try {
-    const reviews = await Review.find({ "reports.0": { $exists: true } })
-      .populate("user", "name email");
+    const reviews = await Review.find({
+      "reports.0": { $exists: true },
+    }).populate("user", "name email");
 
     res.json(reviews);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
-
-
 
 // 🔴 DELETE REVIEW (ADMIN)
 export const deleteReview = async (req, res) => {
@@ -159,7 +159,6 @@ export const deleteReview = async (req, res) => {
     await review.deleteOne();
 
     res.json({ message: "Review deleted" });
-
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

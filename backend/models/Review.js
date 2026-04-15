@@ -12,6 +12,11 @@ const reviewSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    author: {
+      type: String,
+      required: true,
+      trim: true,
+    },
     review: {
       type: String,
       required: true,
@@ -41,7 +46,7 @@ const reviewSchema = new mongoose.Schema(
       },
     ],
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 const Review = mongoose.model("Review", reviewSchema);
