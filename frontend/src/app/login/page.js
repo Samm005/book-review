@@ -43,7 +43,7 @@ export default function Login() {
       }
 
       localStorage.setItem("token", data.token);
-      router.replace("/review"); 
+      router.replace("/"); 
     } catch (err) {
       setError("Cannot connect to server");
     } finally {
