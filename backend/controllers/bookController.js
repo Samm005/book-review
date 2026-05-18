@@ -1,5 +1,8 @@
+// backend/controllers/bookController.js
+
 import Book from "../models/Book.js";
 import Review from "../models/Review.js";
+import axios from "axios";
 
 export const addBook = async (req, res) => {
   try {
@@ -33,8 +36,7 @@ export const getBooks = async (req, res) => {
 
         const avgRating =
           reviews.length > 0
-            ? reviews.reduce((acc, r) => acc + r.rating, 0) /
-              reviews.length
+            ? reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length
             : 0;
 
         return {
@@ -42,7 +44,7 @@ export const getBooks = async (req, res) => {
           avgRating: avgRating.toFixed(1),
           totalReviews: reviews.length,
         };
-      })
+      }),
     );
 
     res.json(booksWithRatings);
@@ -69,14 +71,43 @@ export const getBookById = async (req, res) => {
     const avgRating =
       totalReviews > 0
         ? (
-            reviews.reduce((sum, r) => sum + r.rating, 0) /
-            totalReviews
+            reviews.reduce((sum, r) => sum + r.rating, 0) / totalReviews
           ).toFixed(1)
         : 0;
 
+    let userId = null;
+
+    if (req.headers.authorization?.startsWith("Bearer")) {
+      try {
+        const token = req.headers.authorization.split(" ")[1];
+
+        const decoded = JSON.parse(
+          Buffer.from(token.split(".")[1], "base64").toString(),
+        );
+
+        userId = decoded.id;
+      } catch {}
+    }
+
+    let userReview = null;
+
+    if (userId) {
+      userReview = reviews.find((r) => r.user._id.toString() === userId);
+    }
+
+    const sortedReviews = userReview
+      ? [
+          userReview,
+          ...reviews.filter(
+            (r) => r._id.toString() !== userReview._id.toString(),
+          ),
+        ]
+      : reviews;
+
     res.json({
       book,
-      reviews,
+      reviews: sortedReviews,
+      userReview,
       avgRating,
       totalReviews,
     });
@@ -117,10 +148,85 @@ export const deleteBook = async (req, res) => {
     }
 
     await Review.deleteMany({ book: book._id });
+
     await book.deleteOne();
 
-    res.json({ message: "Book and related reviews deleted" });
+    res.json({
+      message: "Book and related reviews deleted",
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+};
+
+export const searchBooks = async (req, res) => {
+  try {
+    const { query = "", genre = "", sort = "" } = req.query;
+
+    let apiQuery = "";
+
+    if (query.trim()) {
+      apiQuery += query;
+    } else {
+      apiQuery += "subject:fiction";
+    }
+
+    if (genre.trim()) {
+      apiQuery += `+subject:${genre}`;
+    }
+
+    let orderBy = "relevance";
+
+    if (sort === "newest") {
+      orderBy = "newest";
+    }
+
+    const response = await axios.get(
+      `https://www.googleapis.com/books/v1/volumes?q=${apiQuery}&maxResults=15&orderBy=${orderBy}&key=${process.env.GOOGLE_BOOKS_API_KEY}`,
+    );
+    const data = response.data;
+
+    if (!data.items) {
+      return res.json([]);
+    }
+
+    let books = data.items.map((item) => {
+      const googleId = item.id;
+
+      // Stable Google Books cover URL
+      const coverImage = `https://books.google.com/books/content?id=${googleId}&printsec=frontcover&img=1&zoom=1&source=gbs_api`;
+
+      return {
+        id: googleId,
+
+        title: item.volumeInfo.title || "Unknown",
+
+        author: item.volumeInfo.authors?.join(", ") || "Unknown",
+
+        description: item.volumeInfo.description || "",
+
+        coverImage,
+
+        publishedDate: item.volumeInfo.publishedDate || "",
+
+        rating: item.volumeInfo.averageRating || 0,
+      };
+    });
+
+    if (sort === "az") {
+      books.sort((a, b) => a.title.localeCompare(b.title));
+    }
+
+    if (sort === "rating") {
+      books.sort((a, b) => b.rating - a.rating);
+    }
+
+    res.json(books);
+  } catch (error) {
+    console.error("Search error:", error.message);
+
+    res.status(500).json({
+      message: "Search failed",
+    });
   }
 };

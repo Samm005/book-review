@@ -5,12 +5,14 @@ import {
   getBookById,
   updateBook,
   deleteBook,
+  searchBooks,
 } from "../controllers/bookController.js";
 import { protect, adminOnly } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
 router.get("/", getBooks);
+router.get("/search", searchBooks);
 router.get("/:id", getBookById);
 
 router.post("/", protect, adminOnly, addBook);

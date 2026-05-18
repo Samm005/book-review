@@ -17,7 +17,7 @@ const bannedWords = [
   "adult",
 ];
 
-// ✅ CREATE REVIEW
+// CREATE REVIEW (UPDATED)
 export const createReview = async (req, res) => {
   try {
     const { bookId, review, rating } = req.body;
@@ -35,11 +35,24 @@ export const createReview = async (req, res) => {
     }
 
     const lowerReview = review.toLowerCase();
-    const isSpam = bannedWords.some((word) =>
-      lowerReview.includes(word)
-    );
+    const isSpam = bannedWords.some((word) => lowerReview.includes(word));
 
     const status = isSpam ? "pending" : "approved";
+
+    //NEW LOGIC: CHECK EXISTING REVIEW
+    const existing = await Review.findOne({
+      user: req.user._id,
+      book: bookId,
+    });
+
+    if (existing) {
+      existing.review = review;
+      existing.rating = rating;
+      existing.status = status;
+      await existing.save();
+
+      return res.json(existing);
+    }
 
     const newReview = new Review({
       user: req.user._id,
@@ -149,9 +162,7 @@ export const updateReview = async (req, res) => {
 
     // 🔥 OPTIONAL: RE-RUN SPAM CHECK AFTER EDIT
     const lowerReview = existing.review.toLowerCase();
-    const isSpam = bannedWords.some((word) =>
-      lowerReview.includes(word)
-    );
+    const isSpam = bannedWords.some((word) => lowerReview.includes(word));
 
     existing.status = isSpam ? "pending" : "approved";
 

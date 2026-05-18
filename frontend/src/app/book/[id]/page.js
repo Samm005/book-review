@@ -12,6 +12,7 @@ export default function BookPage() {
 
   const [book, setBook] = useState(null);
   const [reviews, setReviews] = useState([]);
+  const [userReview, setUserReview] = useState(null);
   const [avgRating, setAvgRating] = useState(0);
   const [totalReviews, setTotalReviews] = useState(0);
 
@@ -37,11 +38,17 @@ export default function BookPage() {
       setUserId(payload.id);
     }
 
-    const res = await fetch(`http://localhost:5000/api/books/${id}`);
+    const res = await fetch(`http://localhost:5000/api/books/${id}`, {
+      headers: {
+        Authorization: `Bearer ${storedToken}`,
+      },
+    });
+
     const data = await res.json();
 
     setBook(data.book);
     setReviews(data.reviews);
+    setUserReview(data.userReview);
     setAvgRating(data.avgRating);
     setTotalReviews(data.totalReviews);
   };
@@ -50,7 +57,6 @@ export default function BookPage() {
     loadData();
   }, [id]);
 
-  // ✅ Popup auto-hide
   useEffect(() => {
     if (popup) {
       const timer = setTimeout(() => setPopup(""), 2000);
@@ -58,7 +64,6 @@ export default function BookPage() {
     }
   }, [popup]);
 
-  // VALIDATION
   const validateReview = (text, ratingVal) => {
     const trimmed = text.trim();
     if (!trimmed) return "Review cannot be empty";
@@ -68,7 +73,6 @@ export default function BookPage() {
     return null;
   };
 
-  // ADD REVIEW
   const submitReview = async () => {
     const error = validateReview(reviewText, rating);
     if (error) return setPopup(error);
@@ -91,7 +95,6 @@ export default function BookPage() {
     loadData();
   };
 
-  // EDIT REVIEW
   const handleEditSave = async () => {
     const error = validateReview(editText, editRating);
     if (error) return setPopup(error);
@@ -112,7 +115,6 @@ export default function BookPage() {
     loadData();
   };
 
-  // DELETE REVIEW
   const deleteReview = async (id) => {
     await fetch(`http://localhost:5000/api/reviews/${id}`, {
       method: "DELETE",
@@ -127,19 +129,16 @@ export default function BookPage() {
 
   return (
     <div className="min-h-screen relative overflow-hidden text-white px-4 py-10 bg-[#120a2a]">
-      {/* BACKGROUND */}
       <div className="absolute inset-0">
         <div className="absolute w-[900px] h-[900px] bg-purple-700/50 rounded-full blur-[180px] top-[-250px] left-[-200px]" />
         <div className="absolute w-[800px] h-[800px] bg-purple-500/50 rounded-full blur-[160px] bottom-[-200px] right-[-200px]" />
       </div>
 
       <div className="relative z-10">
-        {/* Navbar */}
         <div className="max-w-6xl mx-auto mb-6">
           <Navbar />
         </div>
 
-        {/* Back Button */}
         <div className="max-w-6xl mx-auto mb-4">
           <button
             onClick={() => router.push("/")}
@@ -149,7 +148,6 @@ export default function BookPage() {
           </button>
         </div>
 
-        {/* Book Box */}
         <div className="max-w-4xl mx-auto mb-12">
           <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl shadow-2xl p-8 text-center transition hover:scale-[1.01]">
             <img
@@ -165,7 +163,6 @@ export default function BookPage() {
           </div>
         </div>
 
-        {/* Add Review */}
         {token && (
           <div className="max-w-3xl mx-auto bg-white/10 p-6 rounded-xl mb-10 backdrop-blur-md shadow-lg">
             <textarea
@@ -193,19 +190,26 @@ export default function BookPage() {
                 onClick={submitReview}
                 className="bg-purple-500 px-6 py-2 rounded hover:bg-purple-600 hover:scale-105 transition"
               >
-                Add Review
+                {userReview ? "Update Your Review" : "Add Review"}
               </button>
             </div>
           </div>
         )}
 
-        {/* Reviews */}
         <div className="max-w-4xl mx-auto space-y-4">
           {reviews.map((r) => (
             <div
               key={r._id}
-              className="bg-white/10 p-4 rounded-xl backdrop-blur-md shadow-md hover:scale-[1.02] hover:shadow-[0_0_20px_rgba(139,92,246,0.4)] transition duration-300"
+              className={`p-4 rounded-xl backdrop-blur-md shadow-md transition duration-300 ${
+                r.user?._id === userId
+                  ? "bg-purple-500/20 border border-purple-400 scale-[1.02]"
+                  : "bg-white/10 hover:scale-[1.02] hover:shadow-[0_0_20px_rgba(139,92,246,0.4)]"
+              }`}
             >
+              {r.user?._id === userId && (
+                <p className="text-xs text-purple-300 mb-1">Your Review</p>
+              )}
+
               <p className="font-semibold">{r.user?.name}</p>
               <div className="text-yellow-400">{"★".repeat(r.rating)}</div>
               <p>{r.review}</p>
@@ -235,7 +239,6 @@ export default function BookPage() {
           ))}
         </div>
 
-        {/* EDIT POPUP */}
         {editPopup && (
           <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-[999]">
             <div className="bg-white/10 p-6 rounded-xl backdrop-blur-md animate-scaleIn">
@@ -267,7 +270,6 @@ export default function BookPage() {
           </div>
         )}
 
-        {/* DELETE POPUP */}
         {confirmDelete && (
           <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-[999]">
             <div className="bg-white/10 p-6 rounded-xl backdrop-blur-md animate-scaleIn text-center">
@@ -285,7 +287,6 @@ export default function BookPage() {
           </div>
         )}
 
-        {/* POPUP */}
         {popup && (
           <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-purple-600 px-6 py-3 rounded-lg shadow-lg animate-fadeIn">
             {popup}
@@ -293,7 +294,6 @@ export default function BookPage() {
         )}
       </div>
 
-      {/* 🔥 ANIMATIONS */}
       <style jsx>{`
         @keyframes scaleIn {
           from {
