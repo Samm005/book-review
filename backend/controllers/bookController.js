@@ -167,12 +167,10 @@ export const searchBooks = async (req, res) => {
 
     if (query.trim()) {
       apiQuery += query;
+    } else if (genre.trim()) {
+      apiQuery += `subject:${genre}`;
     } else {
-      apiQuery += "subject:fiction";
-    }
-
-    if (genre.trim()) {
-      apiQuery += `+subject:${genre}`;
+      apiQuery += "popular books";
     }
 
     let orderBy = "relevance";

@@ -15,6 +15,7 @@ router.get("/", getBooks);
 router.get("/search", searchBooks);
 router.get("/:id", getBookById);
 
+router.post("/import", protect, addBook);
 router.post("/", protect, adminOnly, addBook);
 router.put("/:id", protect, adminOnly, updateBook);
 router.delete("/:id", protect, adminOnly, deleteBook);

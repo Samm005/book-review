@@ -76,16 +76,40 @@ export default function Home() {
     }, 400);
   };
 
-  const handleBookClick = (book) => {
+  const handleBookClick = async (book) => {
     if (!token) {
       smoothRedirect("/login");
       return;
     }
 
-    if (book._id) {
-      smoothRedirect(`/book/${book._id}`);
-    } else {
-      alert("External book - not in database");
+    try {
+      // Already exists in DB
+      if (book._id) {
+        smoothRedirect(`/book/${book._id}`);
+        return;
+      }
+
+      // Save Google Books API book into DB
+      const response = await fetch("http://localhost:5000/api/books/import", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify({
+          title: book.title,
+          author: book.author,
+          description: book.description,
+          coverImage: `https://books.google.com/books/publisher/content/images/frontcover/${book.id}?fife=w400&source=gbs_api`,
+        }),
+      });
+
+      const savedBook = await response.json();
+
+      smoothRedirect(`/book/${savedBook._id}`);
+    } catch (error) {
+      console.error(error);
+      alert("Failed to open book");
     }
   };
 
