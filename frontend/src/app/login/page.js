@@ -43,7 +43,14 @@ export default function Login() {
       }
 
       localStorage.setItem("token", data.token);
-      router.replace("/"); 
+
+      const payload = JSON.parse(atob(data.token.split(".")[1]));
+
+      if (payload.role === "admin") {
+        router.replace("/admin");
+      } else {
+        router.replace("/");
+      }
     } catch (err) {
       setError("Cannot connect to server");
     } finally {
@@ -53,23 +60,15 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#1e1b4b] via-[#312e81] to-[#1e1b4b] px-4">
-
       <div className="w-full max-w-sm bg-white/10 backdrop-blur-lg rounded-2xl shadow-2xl overflow-hidden transition-all duration-500 hover:scale-[1.02] hover:shadow-[0_0_40px_rgba(139,92,246,0.4)]">
-
         <div className="p-8 text-white">
-
-          <h2 className="text-3xl font-bold text-center mb-6">
-            Login
-          </h2>
+          <h2 className="text-3xl font-bold text-center mb-6">Login</h2>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-
             <input
               type="email"
               placeholder="Email"
-              onChange={(e) =>
-                setForm({ ...form, email: e.target.value })
-              }
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
               required
               className="w-full p-3 rounded-lg bg-white/80 text-black focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all hover:bg-white"
             />
@@ -78,9 +77,7 @@ export default function Login() {
               <input
                 type={showPassword ? "text" : "password"}
                 placeholder="Password"
-                onChange={(e) =>
-                  setForm({ ...form, password: e.target.value })
-                }
+                onChange={(e) => setForm({ ...form, password: e.target.value })}
                 required
                 className="w-full p-3 rounded-lg bg-white/80 text-black pr-10 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all hover:bg-white"
               />
@@ -94,9 +91,7 @@ export default function Login() {
               </button>
             </div>
 
-            <p className="text-red-400 text-sm min-h-[20px]">
-              {error}
-            </p>
+            <p className="text-red-400 text-sm min-h-[20px]">{error}</p>
 
             <button
               disabled={loading}
@@ -104,7 +99,6 @@ export default function Login() {
             >
               {loading ? "Logging in..." : "Login"}
             </button>
-
           </form>
         </div>
 
@@ -116,7 +110,6 @@ export default function Login() {
             No account? Register
           </button>
         </div>
-
       </div>
     </div>
   );
