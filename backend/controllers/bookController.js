@@ -8,6 +8,16 @@ export const addBook = async (req, res) => {
   try {
     const { title, author, description, coverImage } = req.body;
 
+    // Check existing book
+    const existingBook = await Book.findOne({
+      title,
+      author,
+    });
+
+    if (existingBook) {
+      return res.json(existingBook);
+    }
+
     const book = new Book({
       title,
       author,
@@ -182,34 +192,63 @@ export const searchBooks = async (req, res) => {
     const response = await axios.get(
       `https://www.googleapis.com/books/v1/volumes?q=${apiQuery}&maxResults=15&orderBy=${orderBy}&key=${process.env.GOOGLE_BOOKS_API_KEY}`,
     );
+
     const data = response.data;
 
     if (!data.items) {
       return res.json([]);
     }
 
-    let books = data.items.map((item) => {
-      const googleId = item.id;
+    const books = await Promise.all(
+      data.items.map(async (item) => {
+        const googleId = item.id;
 
-      // Stable Google Books cover URL
-      const coverImage = `https://books.google.com/books/content?id=${googleId}&printsec=frontcover&img=1&zoom=1&source=gbs_api`;
+        const title = item.volumeInfo.title || "Unknown";
 
-      return {
-        id: googleId,
+        const author = item.volumeInfo.authors?.join(", ") || "Unknown";
 
-        title: item.volumeInfo.title || "Unknown",
+        // Check if book already exists in MongoDB
+        const existingBook = await Book.findOne({
+          title,
+          author,
+        });
 
-        author: item.volumeInfo.authors?.join(", ") || "Unknown",
+        let finalRating = item.volumeInfo.averageRating || 0;
 
-        description: item.volumeInfo.description || "",
+        let mongoId = null;
 
-        coverImage,
+        if (existingBook) {
+          mongoId = existingBook._id;
 
-        publishedDate: item.volumeInfo.publishedDate || "",
+          const reviews = await Review.find({
+            book: existingBook._id,
+            status: "approved",
+          });
 
-        rating: item.volumeInfo.averageRating || 0,
-      };
-    });
+          if (reviews.length > 0) {
+            finalRating =
+              reviews.reduce((acc, review) => acc + review.rating, 0) /
+              reviews.length;
+          }
+        }
+
+        return {
+          _id: mongoId,
+
+          id: googleId,
+
+          title,
+
+          author,
+
+          description: item.volumeInfo.description || "",
+
+          publishedDate: item.volumeInfo.publishedDate || "",
+
+          rating: finalRating,
+        };
+      }),
+    );
 
     if (sort === "az") {
       books.sort((a, b) => a.title.localeCompare(b.title));

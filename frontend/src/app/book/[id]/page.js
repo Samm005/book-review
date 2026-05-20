@@ -240,20 +240,21 @@ export default function BookPage() {
         </div>
 
         {editPopup && (
-          <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-[999]">
-            <div className="bg-white/10 p-6 rounded-xl backdrop-blur-md animate-scaleIn">
+          <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-[999] px-4">
+            <div className="bg-white/10 backdrop-blur-xl p-6 rounded-3xl animate-scaleIn w-[420px] max-w-[95vw] shadow-2xl border border-white/20">
               <textarea
                 value={editText}
                 onChange={(e) => setEditText(e.target.value)}
-                className="w-full p-3 rounded text-black mb-4"
+                className="w-full min-h-[140px] rounded-xl p-4 text-black resize-none mb-5 focus:outline-none focus:ring-2 focus:ring-purple-400"
+                placeholder="Edit your review..."
               />
 
-              <div className="flex justify-center gap-2 mb-4">
+              <div className="flex justify-center gap-2 mb-6">
                 {[1, 2, 3, 4, 5].map((n) => (
                   <span
                     key={n}
                     onClick={() => setEditRating(n)}
-                    className={`text-2xl cursor-pointer hover:scale-125 transition ${
+                    className={`text-4xl cursor-pointer hover:scale-125 transition ${
                       editRating >= n ? "text-yellow-400" : "text-gray-400"
                     }`}
                   >
@@ -262,9 +263,20 @@ export default function BookPage() {
                 ))}
               </div>
 
-              <div className="flex gap-4 justify-center">
-                <button onClick={() => setEditPopup(null)}>Cancel</button>
-                <button onClick={handleEditSave}>Save</button>
+              <div className="flex gap-6 justify-center text-lg">
+                <button
+                  onClick={() => setEditPopup(null)}
+                  className="hover:text-red-300 transition"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  onClick={handleEditSave}
+                  className="hover:text-green-300 transition"
+                >
+                  Save
+                </button>
               </div>
             </div>
           </div>

@@ -89,7 +89,7 @@ export default function Home() {
         return;
       }
 
-      // Save Google Books API book into DB
+      // Import Google Books API book into DB
       const response = await fetch("http://localhost:5000/api/books/import", {
         method: "POST",
         headers: {
@@ -105,6 +105,12 @@ export default function Home() {
       });
 
       const savedBook = await response.json();
+
+      if (!response.ok) {
+        console.error(savedBook);
+        alert(savedBook.message || "Failed to import book");
+        return;
+      }
 
       smoothRedirect(`/book/${savedBook._id}`);
     } catch (error) {
@@ -177,7 +183,7 @@ export default function Home() {
       <div className="relative z-10 w-full max-w-6xl grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
         {books.map((book, index) => (
           <div
-            key={book._id || book.id || index}
+            key={`${book.id}-${index}`}
             onClick={() => handleBookClick(book)}
             className="bg-white/10 backdrop-blur-xl p-4 rounded-2xl cursor-pointer transition duration-300 hover:scale-[1.03] hover:shadow-[0_0_30px_rgba(139,92,246,0.4)]"
           >
