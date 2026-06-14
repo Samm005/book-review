@@ -150,7 +150,7 @@ export const updateReview = async (req, res) => {
       return res.status(400).json({ message: "Review too short" });
     }
 
-    //  UPDATE FIELDS 
+    //  UPDATE FIELDS
     if (review !== undefined) {
       existing.review = review;
     }
@@ -247,7 +247,19 @@ export const reportReview = async (req, res) => {
     const review = await Review.findById(req.params.id);
 
     if (!review) {
-      return res.status(404).json({ message: "Review not found" });
+      return res.status(404).json({
+        message: "Review not found",
+      });
+    }
+
+    const alreadyReported = review.reports.some(
+      (report) => report.user.toString() === req.user._id.toString(),
+    );
+
+    if (alreadyReported) {
+      return res.status(400).json({
+        message: "You have already reported this review",
+      });
     }
 
     review.reports.push({
@@ -261,9 +273,13 @@ export const reportReview = async (req, res) => {
 
     await review.save();
 
-    res.json({ message: "Review reported" });
+    res.json({
+      message: "Review reported",
+    });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({
+      message: error.message,
+    });
   }
 };
 
