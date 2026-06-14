@@ -1,6 +1,8 @@
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
 
 import connectDB from "./config/db.js";
 
@@ -16,9 +18,24 @@ connectDB();
 
 const app = express();
 
+// Security
+app.use(helmet());
+
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  message: {
+    message: "Too many requests. Please try again later.",
+  },
+});
+
+app.use(limiter);
+
+// Middleware
 app.use(cors());
 app.use(express.json());
 
+// Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/books", bookRoutes);
@@ -28,6 +45,7 @@ app.get("/", (req, res) => {
   res.send("API is running...");
 });
 
+// Error handlers
 app.use(notFound);
 app.use(errorHandler);
 
