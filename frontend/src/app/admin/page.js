@@ -47,7 +47,7 @@ export default function AdminDashboard() {
           Admin Panel
         </h1>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-4 lg:grid-cols-1 gap-4">
           <button
             onClick={() => router.push("/admin")}
             className="w-full text-left px-5 py-4 rounded-2xl bg-gradient-to-r from-purple-600/40 to-fuchsia-500/30 hover:bg-white/20 transition-all duration-300 text-lg font-medium"
@@ -63,6 +63,13 @@ export default function AdminDashboard() {
           </button>
 
           <button
+            onClick={() => router.push("/admin/reported")}
+            className="w-full text-left px-5 py-4 rounded-2xl bg-white/10 hover:bg-white/20 transition-all duration-300 text-lg font-medium"
+          >
+            🚩 Reported Reviews
+          </button>
+
+          <button
             onClick={() => router.push("/")}
             className="w-full text-left px-5 py-4 rounded-2xl bg-white/10 hover:bg-white/20 transition-all duration-300 text-lg font-medium"
           >
@@ -71,7 +78,7 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      <div className="relative z-10 pt-[260px] sm:pt-[220px] lg:pt-10 lg:ml-72 p-6 md:p-10 lg:p-14">
+      <div className="relative z-10 pt-[300px] sm:pt-[260px] lg:pt-10 lg:ml-72 p-6 md:p-10 lg:p-14">
         <div className="mb-10 lg:mb-14">
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif tracking-widest mb-4">
             Dashboard

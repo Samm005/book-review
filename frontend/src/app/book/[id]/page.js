@@ -125,6 +125,35 @@ export default function BookPage() {
     loadData();
   };
 
+  const reportReview = async (reviewId) => {
+    try {
+      const res = await fetch(
+        `http://localhost:5000/api/reviews/${reviewId}/report`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            reason: "Reported by user",
+          }),
+        },
+      );
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        return setPopup(data.message || "Failed to report review");
+      }
+
+      setPopup("Review reported successfully");
+    } catch (error) {
+      console.error(error);
+      setPopup("Failed to report review");
+    }
+  };
+
   if (!book) return <div className="text-white p-10">Loading...</div>;
 
   return (
@@ -214,27 +243,38 @@ export default function BookPage() {
               <div className="text-yellow-400">{"★".repeat(r.rating)}</div>
               <p>{r.review}</p>
 
-              {r.user?._id === userId && (
-                <div className="flex gap-4 mt-2">
-                  <button
-                    onClick={() => {
-                      setEditPopup(r._id);
-                      setEditText(r.review);
-                      setEditRating(r.rating);
-                    }}
-                    className="text-blue-400 hover:underline hover:scale-105 transition"
-                  >
-                    Edit
-                  </button>
+              <div className="flex gap-4 mt-2 flex-wrap">
+                {r.user?._id === userId ? (
+                  <>
+                    <button
+                      onClick={() => {
+                        setEditPopup(r._id);
+                        setEditText(r.review);
+                        setEditRating(r.rating);
+                      }}
+                      className="text-blue-400 hover:underline hover:scale-105 transition"
+                    >
+                      Edit
+                    </button>
 
-                  <button
-                    onClick={() => setConfirmDelete(r._id)}
-                    className="text-red-400 hover:underline hover:scale-105 transition"
-                  >
-                    Delete
-                  </button>
-                </div>
-              )}
+                    <button
+                      onClick={() => setConfirmDelete(r._id)}
+                      className="text-red-400 hover:underline hover:scale-105 transition"
+                    >
+                      Delete
+                    </button>
+                  </>
+                ) : (
+                  token && (
+                    <button
+                      onClick={() => reportReview(r._id)}
+                      className="text-orange-400 hover:underline hover:scale-105 transition"
+                    >
+                      Report
+                    </button>
+                  )
+                )}
+              </div>
             </div>
           ))}
         </div>
