@@ -118,7 +118,10 @@ export default function AdminDashboard() {
             </p>
           </div>
 
-          <div className="bg-white/10 backdrop-blur-2xl rounded-[32px] p-6 lg:p-8 border border-white/10 hover:shadow-[0_0_35px_rgba(34,211,238,0.35)] transition-all duration-300 md:col-span-2 xl:col-span-1">
+          <div
+            onClick={() => router.push("/admin/users")}
+            className="bg-white/10 backdrop-blur-2xl rounded-[32px] p-6 lg:p-8 border border-white/10 hover:shadow-[0_0_35px_rgba(34,211,238,0.35)] transition-all duration-300 md:col-span-2 xl:col-span-1 cursor-pointer hover:scale-[1.02]"
+          >
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-gray-300 text-lg lg:text-xl">
                 Registered Users
