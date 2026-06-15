@@ -1,36 +1,63 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+## Project Overview
+BookHub is a full-stack book review platform where users can search for books, view book details, write reviews, rate books, manage their reviews, and report inappropriate content. The application also includes an admin panel for review moderation and user management.
 
-## Getting Started
+## Features
+User Features:User registration and login, JWT-based authentication, Search books, Import books from Google Books API, View book details, Add reviews and ratings, Edit reviews, Delete reviews, View average ratings and total reviews, Report inappropriate reviews, View personal profile, View review history, Open reviewed books directly from review history
 
-First, run the development server:
+Admin Features: Admin dashboard, View platform statistics, Review moderation system, Approve pending reviews, Delete reviews, View reported reviews, Manage users, Delete users, Admin self-delete protection
 
-```bash
+## Technologies Used
+Frontend: Next.js, React.js, Tailwind CSS
+
+Backend:Node.js, Express.js
+
+Database: MongoDB, Mongoose
+
+Authentication: JWT (JSON Web Tokens), bcryptjs
+
+##  Installation
+Clone the repository:
+git clone
+
+cd project-folder
+
+Install backend dependencies:
+cd backend
+npm install
+
+Install frontend dependencies:
+cd frontend
+npm install
+
+## Environment Variables
+Create a .env file inside the backend folder and add:
+
+PORT=5000
+MONGO_URI=your_mongodb_connection_string
+JWT_SECRET=your_secret_key
+
+ADMIN_EMAIL=your_admin_email
+ADMIN_PASSWORD=your_admin_password
+
+GOOGLE_BOOKS_API_KEY=your_google_book_api
+
+## Create Admin Account
+Navigate to the backend folder and run:
+npm run seedAdmin.js
+This creates the default admin account.
+
+## Running the Project
+Start the backend server:
+cd backend
+npm start
+
+Backend runs on:
+http://localhost:5000
+
+Start the frontend server:
+cd frontend
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Frontend runs on:
+http://localhost:3000
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
