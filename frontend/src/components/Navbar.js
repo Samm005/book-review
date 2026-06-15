@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export default function Navbar() {
   const router = useRouter();
@@ -9,6 +9,9 @@ export default function Navbar() {
 
   const [user, setUser] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+
+  const dropdownRef = useRef(null);
 
   const loadUser = () => {
     try {
@@ -23,12 +26,7 @@ export default function Navbar() {
       const payload = JSON.parse(atob(token.split(".")[1]));
 
       setUser(payload);
-
-      if (payload.role === "admin") {
-        setIsAdmin(true);
-      } else {
-        setIsAdmin(false);
-      }
+      setIsAdmin(payload.role === "admin");
     } catch (err) {
       console.error("Invalid token:", err);
       setUser(null);
@@ -39,7 +37,6 @@ export default function Navbar() {
   useEffect(() => {
     loadUser();
 
-    // Fix back button + tab switch
     window.addEventListener("focus", loadUser);
 
     return () => {
@@ -47,10 +44,23 @@ export default function Navbar() {
     };
   }, []);
 
-  // Fix route navigation
   useEffect(() => {
     loadUser();
   }, [pathname]);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -60,8 +70,7 @@ export default function Navbar() {
   if (!user) return null;
 
   return (
-    <div className="flex justify-between items-center w-full">
-      {/* Logo */}
+    <div className="flex justify-between items-center w-full relative z-[99999]">
       <h1
         onClick={() => router.push("/")}
         className="text-2xl font-bold cursor-pointer hover:scale-105 transition duration-300"
@@ -69,9 +78,7 @@ export default function Navbar() {
         📚 BookHub
       </h1>
 
-      {/* Right Side */}
       <div className="flex items-center gap-4">
-        {/* Admin Button */}
         {isAdmin && (
           <button
             onClick={() => router.push("/admin")}
@@ -81,18 +88,46 @@ export default function Navbar() {
           </button>
         )}
 
-        {/* User Name */}
-        <span className="text-sm text-white/80">
-          {user?.name || user?.email || "User"}
-        </span>
+        <div ref={dropdownRef} className="relative z-[9999]">
+          <button
+            onClick={() => setDropdownOpen(!dropdownOpen)}
+            className="bg-white/10 hover:bg-white/20 px-4 py-2 rounded-xl transition flex items-center gap-2"
+          >
+            <span>{user?.name || user?.email || "User"}</span>
 
-        {/* Logout */}
-        <button
-          onClick={handleLogout}
-          className="bg-red-500 px-4 py-2 rounded-lg hover:bg-red-600 transition duration-300"
-        >
-          Logout
-        </button>
+            <span
+              className={`transition-transform duration-300 ${
+                dropdownOpen ? "rotate-180" : ""
+              }`}
+            >
+              ▼
+            </span>
+          </button>
+
+          {dropdownOpen && (
+            <div className="absolute right-0 mt-2 w-48 bg-[#2a1747] border border-white/10 rounded-2xl overflow-hidden shadow-2xl z-[99999]">
+              <button
+                onClick={() => {
+                  setDropdownOpen(false);
+                  router.push("/profile");
+                }}
+                className="w-full text-left px-4 py-3 hover:bg-white/10 transition"
+              >
+                👤 Profile
+              </button>
+
+              <button
+                onClick={() => {
+                  setDropdownOpen(false);
+                  handleLogout();
+                }}
+                className="w-full text-left px-4 py-3 hover:bg-red-500/20 transition"
+              >
+                🚪 Logout
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

@@ -130,7 +130,7 @@ export default function Home() {
         <div className="absolute w-[800px] h-[800px] bg-purple-500/50 rounded-full blur-[160px] bottom-[-200px] right-[-200px]" />
       </div>
 
-      <div className="relative z-10 w-full max-w-6xl mb-6">
+      <div className="relative z-[99999] w-full max-w-6xl mb-6">
         <Navbar />
       </div>
 
